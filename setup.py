@@ -6,5 +6,10 @@ setup(name='rrquant',
         author='RRQuanticaAnalytics',
         author_email='rohan@rrquanticacapital.com',
         license='MIT',
+        install_requires = [
+                'pandas',
+                'numpy',
+                'datetime',
+        ],
         packages=['rrquant'],
         zip_safe=False)	
