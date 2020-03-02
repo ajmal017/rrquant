@@ -3,3 +3,5 @@
 # E.g. from rrfinance import function/class
 # When calling the package in another project:
 # import RRQuant OR from RRQuant import rrfinance
+
+from rrquant import rrfinance
