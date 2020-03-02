@@ -1,28 +1,29 @@
-from setuptools import setup
+import setuptools
 
-def readme():
-    with open('README.md') as f:
-        return f.read()
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
-setup(name='rrquant',
+setuptools.setup(name='rrquant',
         version='0.1',
         description='A package containing classes and functions made for financial and big data analysis.',
-        long_description = readme(),
+        long_description = long_description,
+        long_description_content_type = 'text/markdown'
         url='https://github.com/RRQuanticaAnalytics/rrquant',
         author='RRQuanticaAnalytics',
         author_email='rohan@rrquanticacapital.com',
         license='MIT',
-        packages=['rrquant'],
+        packages= setuptools.find_packages(),
+        classifiers = [
+            "Programming Language :: Python :: 3",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independant",
+        ],
         install_requires = [
                 'pandas',
                 'numpy',
                 'datetime',
                 'markdown',
         ],
-        #test_suite = 'nose.collector',
-        #tests_require = ['nose'],
-        #entry_points = {
-        #'console_scripts':['rrquant=rrquant.command_line:main'],
-        #},
+        python_requires = '>=3.6',
         include_package_data = True,
         zip_safe=False,)
