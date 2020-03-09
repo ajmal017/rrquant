@@ -7,7 +7,7 @@ import mibian
 seaborn.set(style="darkgrid")
 
 # List of Option Strategies & Descriptions
-def strategy_description(strat):
+def strategy_description():
     strats_dict = {"stock_payoff": ' ',
     "short_stock_payoff": ' ',
     "call_payoff": ' ',
@@ -18,21 +18,21 @@ def strategy_description(strat):
     "synthetic_put_payoff": ' ',
     "covered_call_payoff": ' ',
     "protective_put_payoff": ' ',
-    "bull_call_spread_payoff": 'A bull call spread is purchasing a call option, and simultaneously selling another call option (on the same underlying asset) with the same expiration date but a higher strike price. Since this is a debit spread, the maximum loss is restricted to the net premium paid for the position, while the maximum profit is equal to the difference in the strike prices of the calls less the net premium paid to put on the position.',
-    "bear_call_spread_payoff": 'A bear call spread is selling a call option, and simultaneously purchasing another call option with the same expiration date but at a higher strike price. Since this is a credit spread, the maximum gain is restricted to the net premium received for the position, while the maximum loss is equal to the difference in the strike prices of the calls less the net premium received.',
-    "bull_put_spread_payoff": 'A bull put spread is writing a put option, and simultaneously purchasing another put option with the same expiration date but a lower strike price. Since this is a credit spread, the maximum gain is restricted to the net premium received for the position, while the maximum loss is equal to the difference in the strike prices of the puts less the net premium received.',
-    "bear_put_spread_payoff": 'A bear put spread is purchasing a put option, and simultaneously selling another put option with the same expiration date but a lower strike price. Since this is a debit spread, the maximum loss is restricted to the net premium paid for the position, while the maximum profit is equal to the difference in the strike prices of the puts less the net premium paid to put on the position.',
-    "bear_call_ladder": ' ',
-    "long_combo_payoff": ' ',
-    "protective_collar_payoff": ' ',
+    "bull_call_spread_payoff":'A bull call spread is purchasing a call option, and simultaneously selling another call option (on the same underlying asset) with the same expiration date but a higher strike price. Since this is a debit spread, the maximum loss is restricted to the net premium paid for the position, while the maximum profit is equal to the difference in the strike prices of the calls less the net premium paid to put on the position.',
+    "bear_call_spread_payoff":'A bear call spread is selling a call option, and simultaneously purchasing another call option with the same expiration date but at a higher strike price. Since this is a credit spread, the maximum gain is restricted to the net premium received for the position, while the maximum loss is equal to the difference in the strike prices of the calls less the net premium received.',
+    "bull_put_spread_payoff":'A bull put spread is writing a put option, and simultaneously purchasing another put option with the same expiration date but a lower strike price. Since this is a credit spread, the maximum gain is restricted to the net premium received for the position, while the maximum loss is equal to the difference in the strike prices of the puts less the net premium received.',
+    "bear_put_spread_payoff":'A bear put spread is purchasing a put option, and simultaneously selling another put option with the same expiration date but a lower strike price. Since this is a debit spread, the maximum loss is restricted to the net premium paid for the position, while the maximum profit is equal to the difference in the strike prices of the puts less the net premium paid to put on the position.',
+    "bear_call_ladder": 'A Bear Call Ladder that allows earning profits till the underlying price reaches a desired strike price. It resets during specific trade levels by capping the profit between the old strike and the new strike price in either or both directions, thus allowing flexibility in the payoff. Like the rungs of a ladder, the trigger strikes reduce risk and once the market price of the asset reaches the trigger, it locks in the profit, thus increasing the profitability.It mainly protects the downside of a Call sold by insuring it i.e. by buying a Call of a higher strike price. This strategy is successfule when it is speculated that the market would be moving significantly higher.',
+    "long_combo_payoff": 'A Long Combo Spread is a bullish strategy and involves shorting a OTM Lower Strike Put and buying a OTM High Strike Call.',
+    "collar_payoff": 'A Protective Collar is a Covered Call position, with an additional Protective Put to "collar" the value of a security position between 2 bounds.',
     "straddle_spread_payoff": ' ',
     "strangle_spread_payoff": ' ',
-    "iron_condor_payoff": ' ',
-    "butterfly_spread_payoff": ' ',
+    "iron_condor_payoff": 'An Iron Condor Spread is a four-legged strategy, combining a bull put and a bear call. It is acheived through shorting an OTM higher put and an OTM lower call and taking a long position in an OTM higher strike call and OTM lower strike put.',
+    "butterfly_spread_payoff": 'Butterfly Options Strategy is a combination of Bull Spread and Bear Spread, a Neutral Trading Strategy, since it has limited risk options and a limited profit potential. It is practised on the stocks whose underlying Price is expected to change very little over its lifetime.',
     "iron_butterfly_payoff": ' ',
-    "jade_lizard_payoff": ' '
+    "jade_lizard_payoff": 'A Jade Lizard Trading Strategy is generally practised if there was a high IV and/or if the stock had recently fallen i.e the stocks are oversold. They are most beneficial when underlying stays or drifts toward the strike. High profits are produced in high IV and non-bearish environments'
     }
-    strategy_df = pd.DataFrame({"Strategy":strats_dict.keys(),"Description":strats_dict.items()})
+    strategy_df = pd.DataFrame({"Strategy":list(strats_dict.keys()),"Description":list(strats_dict.values())})
     return strategy_df
 
 
@@ -40,8 +40,14 @@ def strategy_description(strat):
 def s_T(min_price, max_price):
     return np.arange(min_price,max_price,1)
 
-##### Payoffs #####
+# Max Profit and Loss
+def profit_loss(payoff):
+    Profit = max(payoff).round(4)
+    Loss = min(payoff).round(4)
+    print('Max Profit: ' + str(Profit) + ' | Max Loss: '+ str(Loss))
+    return Profit, Loss
 
+##### Stock and Single Leg Option Payoffs #####
 # Stock Payoff
 def stock_payoff(sT, s0):
     return (sT - s0)
@@ -91,105 +97,105 @@ def covered_call_payoff(sT, s0, short_call_strike, short_call_premium):
     return short_call + stock
 
 
-##### Spread Payoffs #####
-
+##### Two Leg Spread Payoffs #####
 # Bull Call Spread Payoff
-def bull_call_spread_payoff(sT, lower_call_strike, lower_call_premium, higher_short_call_strike, higher_short_call_premium):
-    call = call_payoff(sT, lower_call_strike, lower_call_premium)
-    short_call = short_call_payoff(sT, higher_short_call_strike, higher_short_call_premium)
-    return call + short_call
+def bull_call_payoff(sT, K1_call_strike, K1_call_premium, K2_short_call_strike, K2_short_call_premium):
+    K1_call = call_payoff(sT, K1_call_strike, K1_call_premium)
+    K2_short_call = short_call_payoff(sT, K2_short_call_strike, K2_short_call_premium)
+    return K1_call + K2_short_call
 
 # Bear Call Spread Payoff
-def bear_call_spread_payoff(sT, higher_call_strike, higher_call_premium, lower_short_call_strike, lower_short_call_premium):
-    call = call_payoff(sT, higher_call_strike, higher_call_premium)
-    short_call = short_call_payoff(sT, short_call_strike, short_call_premium)
-    return call + short_call
+def bear_call_payoff(sT, K1_short_call_strike, K1_short_call_premium, K2_call_strike, K2_call_premium):
+    K1_short_call = short_call_payoff(sT, K1_short_call_strike, K1_short_call_premium)
+    K2_call = call_payoff(sT, K2_call_strike, K2_call_premium)
+    return K1_short_call + K2_call
 
 # Bull Put Spread Payoff
-def bull_put_spread_payoff(sT, lower_put_strike, lower_put_premium, higher_short_put_strike,  higher_short_put_premium):
-    put = put_payoff(sT, lower_put_strike, lower_put_premium)
-    short_put = short_put_payoff(sT, higher_short_put_strike, higher_short_put_premium)
-    return put + short_put
+def bull_put_payoff(sT, K1_put_strike, K1_put_premium, K2_short_put_strike,  K2_short_put_premium):
+    K1_put = put_payoff(sT, K1_put_strike, K1_put_premium)
+    K2_short_put = short_put_payoff(sT, K2_short_put_strike, K2_short_put_premium)
+    return K1_put + K2_short_put
 
 # Bear Put Spread Payoff
-def bear_put_spread_payoff(sT, higher_put_strike, higher_put_premium, lower_short_put_strike,  lower_short_put_premium):
-    put = put_payoff(sT, higher_put_strike, higher_put_premium)
-    short_put = short_put_payoff(sT, lower_short_put_strike, lower_short_put_premium)
-    return put + short_put
+def bear_put_payoff(sT, K1_short_put_strike,  K1_short_put_premium, K2_put_strike, K2_put_premium):
+    K1_short_put = short_put_payoff(sT, K1_short_put_strike, K1_short_put_premium)
+    K2_put = put_payoff(sT, K2_put_strike, K2_put_premium)
+    return  K1_short_put + K2_put
 
-# Bear Call Ladder Spread Payoff
-def bear_call_ladder(sT, OTM_call_strike, OTM_call_premium, ATM_call_strike, ATM_call_premium, short_call_strike, short_call_premium):
-    OTM_call = call_payoff(sT, OTM_call_strike, OTM_call_premium)
-    ATM_call = call_payoff(sT, ATM_call_strike, ATM_call_premium)
-    short_call = short_call_payoff(sT, short_call_strike, short_call_premium)
-    return OTM_call + ATM_call + short_call
+# Collar Spread Payoff (Aka Protective Collar)
+def collar_payoff(sT, K1_put_strike, K1_put_premium, K2_short_call_strike, K2_short_call_premium):
+    K2_short_call = short_call_payoff(sT, K2_short_call_strike, K2_short_call_premium)
+    K1_put = put_payoff(sT, K1_put_strike, K1_put_premium)
+    return K1_put + K2_short_call
 
-# Long Combo Spread Payoff
-def long_combo_payoff(sT, call_strike, call_premium, short_put_strike, short_put_premium):
-    call = call_payoff(sT, call_strike, call_premium)
-    short_put = short_put_payoff(sT, short_put_strike, short_put_premium)
-    return call + short_put
-
-# Protective Collar Spread Payoff
-def protective_collar_payoff(sT, short_call_strike, short_call_premium, put_strike, put_premium):
-    short_call = short_call_payoff(sT, short_call_strike, short_call_premium)
-    put = put_payoff(sT, put_strike, put_premium)
-    return short_call + put
+# Long Combo Spread Payoff (Inverted Collar Spread)
+def long_combo_payoff(sT, K1_short_put_strike, K1_short_put_premium, K2_call_strike, K2_call_premium):
+    K1_short_put = short_put_payoff(sT, K1_short_put_strike, K1_short_put_premium)
+    K2_call = call_payoff(sT, K2_call_strike, K2_call_premium)
+    return K1_short_put + K2_call
 
 # Straddle Spread Payoff
-def straddle_spread_payoff(sT, call_strike, call_premium, put_strike, put_premium):
-    call = call_payoff(sT, call_strike, call_premium)
-    put = put_payoff(sT, put_strike, put_premium)
-    return call + put
+def straddle_payoff(sT, K1_strike, K1_call_premium, K1_put_premium):
+    K1_call = call_payoff(sT, K1_strike, K1_call_premium)
+    K1_put = put_payoff(sT, K1_strike, K1_put_premium)
+    return K1_call + K1_put
 
 # Strangle Spread Payoff
-def strangle_spread_payoff(sT, call_strike, call_premium, put_strike, put_premium):
-    call = call_payoff(sT, call_strike, call_premium)
-    put = put_payoff(sT, put_strike, put_premium)
-    return call + put
+def strangle_payoff(sT, K1_put_strike, K1_put_premium,  K2_call_strike, K2_call_premium):
+    K1_put = put_payoff(sT, K1_put_strike, K1_put_premium)
+    K2_call = call_payoff(sT, K2_call_strike, K2_call_premium)
+    return K1_put + K2_call
+
+
+##### Multi Leg Spread Payoffs #####
+# Bear Call Ladder Spread Payoff
+def bear_call_ladder_payoff(sT, K1_short_call_strike, K1_short_call_premium, K2_call_strike, K2_call_premium, K3_call_strike, K3_call_premium):
+    K1_short_call = short_call_payoff(sT, K1_short_call_strike, K1_short_call_premium)
+    K2_call = call_payoff(sT, K2_call_strike, K2_call_premium)
+    K3_call = call_payoff(sT, K3_call_strike, K3_call_premium)
+    return  K1_short_call + K2_call + K3_call
 
 # Iron Condor Spread Payoff
-def iron_condor_payoff(sT, call_strike, call_premium, short_call_strike, short_call_premium, put_strike, put_premium, short_put_strike, short_put_premium):
-    call = call_payoff(sT, call_strike, call_premium)
-    short_call = short_call_payoff(sT, short_call_strike, short_call_premium)
-    put = put_payoff(sT, put_strike, put_premium)
-    short_put = short_put_payoff(sT, short_put_strike, short_put_premium)
-    return call + short_call + put + short_put
+def iron_condor_payoff(sT, K1_put_strike, K1_put_premium, K2_short_put_strike, K2_short_put_premium, K3_short_call_strike, K3_short_call_premium, K4_call_strike, K4_call_premium):
+    K1_put = put_payoff(sT, K1_put_strike, K1_put_premium)
+    K2_short_put = short_put_payoff(sT, K2_short_put_strike, K2_short_put_premium)
+    K3_short_call = short_call_payoff(sT, K3_short_call_strike, K3_short_call_premium)
+    K4_call = call_payoff(sT, K4_call_strike, K4_call_premium)
+    return K1_put + K2_short_put  + K3_short_call + K4_call
 
 # Butterfly Spread Payoff
-def butterfly_spread_payoff(sT, low_call_strike, low_call_premium, high_call_strike, high_call_premium, short_call_strike, short_call_premium):
-    lower_strike_call = call_payoff(sT, low_call_strike, low_call_premium)
-    high_strike_call = call_payoff(sT, high_call_strike, high_call_premium)
-    short_call = short_call_payoff(sT, short_call_strike, short_call_premium)
-    return 2*(short_call) + lower_strike_call + high_strike_call
+def butterfly_payoff(sT, K1_call_strike, K1_call_premium, K2_short_call_strike, K2_short_call_premium, K3_call_strike, K3_call_premium):
+    K1_call = call_payoff(sT, K1, K1_call_premium)
+    K2_short_call = short_call_payoff(sT, K2, K2_short_call_premium)
+    K3_call = call_payoff(sT, K3, K3_call_premium)
+    return K1_call + 2*(K2_short_call) + K3_call
 
 # Iron Butterfly Spread Payoff
-def iron_butterfly_payoff(sT, call_strike, call_premium, short_call_strike, short_call_premium, put_strike, put_premium, short_put_strike, short_put_premium):
-    call = call_payoff(sT, call_strike, call_premium)
-    short_call = short_call_payoff(sT, short_call_strike, short_call_premium)
-    put = put_payoff(sT, put_strike, put_premium)
-    short_put = short_put_payoff(sT, short_put_strike, short_put_premium)
-    return call + short_call + put + short_put
+def iron_butterfly_payoff(sT, K1_put_strike, K1_put_premium, K2_short_strike, K2_short_call_premium, K2_short_put_premium, K3_call_strike, K3_call_premium):
+    K1_put = put_payoff(sT, K1_put_strike, K1_put_premium)
+    K2_short_call = short_call_payoff(sT, K2_short_strike, K2_short_call_premium)
+    K2_short_put = short_put_payoff(sT, K2_short_strike, K2_short_put_premium)
+    K3_call = call_payoff(sT, K3_call_strike, K3_call_premium)
+    return K1_put + K2_short_put + K2_short_call + K3_call
 
 # Jade Lizard Spread Payoffs
-def jade_lizard_payoff(sT, call_strike, call_premium, short_call_strike, short_call_premium, short_put_strike, short_put_premium):
-    call = call_payoff(sT, call_strike, call_premium)
-    short_call = short_call_payoff(sT, short_call_strike, short_call_premium)
-    short_put =  short_put_payoff(sT, short_put_strike, short_put_premium)
-    return call + short_call + short_put
+def jade_lizard_payoff(sT,K1_short_put_strike, K1_short_put_premium, K2_short_call_strike, K2_short_call_premium, K3_call_strike, K3_call_premium):
+    K1_short_put =  short_put_payoff(sT, K1_short_put_strike, K1_short_put_premium)
+    K2_short_call = short_call_payoff(sT, K2_short_call_strike, K2_short_call_premium)
+    K3_call = call_payoff(sT, K3_call_strike, call_premium)
+    return K1_short_put + K2_short_call + K3_call
+
 
 ###### Payoff Plots #######
-
 ### Stock Payoff Plots ###
-def stock_payoff_plot(T, stock_payoff):
+def stock_payoff_plot(sT, stock_payoff):
     fig, ax = plt.subplots()
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,stock_payoff,label='Stock Payoff',color='b')
+    ax.plot(sT,stock_payoff,label='Stock Payoff',color='g')
     plt.xlabel('Stock Price')
     plt.ylabel('Profit and loss')
-    plt.legend()
     plt.show()
 
 def short_stock_payoff_plot(sT, short_stock_payoff):
@@ -197,10 +203,9 @@ def short_stock_payoff_plot(sT, short_stock_payoff):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,short_stock_payoff,label='Stock Payoff',color='b')
-    plt.xlabel('Stock Price')
+    ax.plot(sT,short_stock_payoff,label='Stock Payoff',color='r')
+    plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
-    plt.legend()
     plt.show()
 
 ### Call Payoff Plots ###
@@ -210,7 +215,6 @@ def call_payoff_plot(sT, call_payoff):
     ax.plot(sT,call_payoff,label='Long Call',color='g')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
-    plt.legend()
     plt.show()
 
 def short_call_payoff_plot(sT, short_call_payoff):
@@ -219,9 +223,25 @@ def short_call_payoff_plot(sT, short_call_payoff):
     ax.plot(sT, short_call_payoff,label='Short Call',color='r')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
-    plt.legend()
     plt.show()
 
+def covered_call_plot(sT, covered_call_payoff):
+    fig, ax = plt.subplots()
+    ax.spines['bottom'].set_position('zero')
+    ax.plot(sT,covered_call_payoff, color = 'b')
+    ax.set_title('Covered Call Payoff')
+    plt.xlabel('Stock Price (sT)')
+    plt.ylabel('Profit and loss')
+    plt.show()
+
+def synthetic_call_plot(sT, synthetic_call_payoff):
+    fig, ax = plt.subplots()
+    ax.spines['bottom'].set_position('zero')
+    ax.plot(sT,synthetic_call_payoff, color = 'b')
+    ax.set_title('Synthetic Call Payoff')
+    plt.xlabel('Stock Price (sT)')
+    plt.ylabel('Profit and loss')
+    plt.show()
 
 ### Put Payoff Plots ###
 def put_payoff_plot(sT, put_payoff):
@@ -242,83 +262,103 @@ def short_put_payoff_plot(sT, short_put_payoff):
     plt.ylabel('Profit & Loss')
     plt.show()
 
+def protective_put_plot(sT, protective_put_payoff):
+    fig, ax = plt.subplots()
+    ax.spines['bottom'].set_position('zero')
+    ax.plot(sT,protective_put_payoff, color = 'b')
+    ax.set_title('Protective Put Payoff')
+    plt.xlabel('Stock Price (sT)')
+    plt.ylabel('Profit and loss')
+    plt.show()
+
 def synthetic_put_payoff_plot(sT, synthetic_put_payoff):
     fig, ax = plt.subplots()
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,synthetic_put_payoff,label='Synthetic Long Put')
+    ax.plot(sT,synthetic_put_payoff,color = 'magenta')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
-    plt.legend()
     plt.show()
 
-### Sperad Payoff Plots ###
-
-def bull_call_plot(sT, bull_call_spread_payoff):
+### Two Leg Sperad Payoff Plots ###
+def bull_call_plot(sT, bull_call_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,bull_call_spread_payoff, color = 'b')
+    ax.plot(sT,bull_call_payoff, color = 'g')
     ax.set_title('Bull Call Spread Payoff')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
-    plt.legend()
     plt.show()
 
-def bear_call_plot(sT, bear_call_spread_payoff):
+def bear_call_plot(sT, bear_call_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,bear_call_spread_payoff, color = 'b')
+    ax.plot(sT,bear_call_payoff, color = 'r')
     ax.set_title('Bear Call Spread Payoff')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
-    plt.legend()
     plt.show()
 
-def bull_put_plot(sT = s_T(), bull_put_spread_payoff ):
+def bull_put_plot(sT, bull_put_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT, bull_put_payoff, color ='b')
+    ax.plot(sT, bull_put_payoff, color ='lightgreen')
     ax.set_title('Bull Put Spread Payoff')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit & Loss')
     plt.show()
 
-def bear_put_plot(sT = s_T(), bear_put_spread_payoff ):
+def bear_put_plot(sT, bear_put_payoff ):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT, bear_put_payoff, color ='b')
+    ax.plot(sT, bear_put_payoff, color ='tomato')
     ax.set_title('Bear Put Spread Payoff')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit & Loss')
     plt.show()
 
+def collar_plot(sT, collar_payoff):
+    fig, ax = plt.subplots()
+    ax.spines['bottom'].set_position('zero')
+    ax.plot(sT,collar_payoff, color = 'b')
+    ax.set_title('Collar Payoff')
+    plt.xlabel('Stock Price (sT)')
+    plt.ylabel('Profit and loss')
+    plt.show()
+
 def long_combo_plot(sT, long_combo_payoff):
     fix , ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,long_combo_payoff,color='b')
+    ax.plot(sT,long_combo_payoff,color='royalblue')
     ax.set_title('Long Combo Payoff')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
-    plt.legend()
-    plt.grid()
     plt.show()
 
-def straddle_plot(sT, straddle_spread_payoff):
+def straddle_plot(sT, straddle_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,straddle_spread_payoff, color = 'b')
+    ax.plot(sT,straddle_payoff, color = 'gold')
     ax.set_title('Straddle Spread Payoff')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
-    plt.legend()
     plt.show()
 
-def bear_call_ladder_plot(sT, bear_call_ladder):
+def strangle_plot(sT, strangle_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,bear_call_ladder,color='b', label= 'Bear Call Ladder')
-    plt.legend()
+    ax.plot(sT,strangle_payoff, color = 'b')
+    ax.set_title('Strangle Spread Payoff')
+    plt.xlabel('Stock Price (sT)')
+    plt.ylabel('Profit and loss')
+    plt.show()
+
+### Multileg Spread Payoff Plots ###
+def bear_call_ladder_plot(sT, bear_call_ladder_payoff):
+    fig, ax = plt.subplots()
+    ax.spines['bottom'].set_position('zero')
+    ax.plot(sT,bear_call_ladder_payoff,color='peru')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit & Loss')
     plt.show()
@@ -326,18 +366,15 @@ def bear_call_ladder_plot(sT, bear_call_ladder):
 def iron_condor_plot(sT, iron_condor_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,iron_condor_payoff, color = 'b')
+    ax.plot(sT,iron_condor_payoff, color = 'peru')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
-    plt.legend()
-    plt.grid()
     plt.show()
 
-def butterfly_spread_plot(sT,butterfly_spread_payoff):
+def butterfly_spread_plot(sT,butterfly_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,butterfly_spread_payoff ,color='b', label= 'Butterfly Spread')
-    plt.legend()
+    ax.plot(sT,butterfly_payoff ,color='orange')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit & Loss')
     plt.show()
@@ -345,7 +382,7 @@ def butterfly_spread_plot(sT,butterfly_spread_payoff):
 def iron_butterfly_plot(sT, iron_butterfly_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT, iron_butterfly_payoff, color ='g')
+    ax.plot(sT, iron_butterfly_payoff, color ='brown')
     ax.set_title('Iron Butterfly Spread')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit & Loss')
@@ -354,39 +391,39 @@ def iron_butterfly_plot(sT, iron_butterfly_payoff):
 def jade_lizard_plot(sT,jade_lizard_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,jade_lizard_payoff,label='Jade Lizard Payoff')
-    plt.xlabel('Stock Price')
+    ax.plot(sT,jade_lizard_payoff, color = 'lime')
+    plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and Loss')
-    plt.legend()
-    plt.grid()
     plt.show()
 
-# collar Spread
-# protective put
-# covered call
-# strangle spread
-# synthetic call
+# Plot Template
+#def _plot(sT, _payoff):
+#    fig, ax = plt.subplots()
+#    ax.spines['bottom'].set_position('zero')
+#    ax.plot(sT,_payoff, color = 'b')
+#    ax.set_title(' Payoff')
+#    plt.xlabel('Stock Price (sT)')
+#    plt.ylabel('Profit and loss')
+#    plt.show()
 
-
-### Spread Payoff Plots with Components ###
-
-def bull_call_payoff_plot(sT, bull_call_spread_payoff, call_payoff, short_call_payoff):
+##### Two Leg Spread Payoff Plots with Components #####
+def bull_call_payoff_plot(sT, bull_call_spread_payoff, K1_call_payoff, K2_short_call_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,call_payoff,'--',label='Long Call',color='g')
-    ax.plot(sT,short_call_payoff,'--',label='Short Call ',color='r')
+    ax.plot(sT,K1_call_payoff,'--',label='K1 Long Call',color='g')
+    ax.plot(sT,K2_short_call_payoff,'--',label='K2 Short Call ',color='r')
     ax.plot(sT,bull_call_spread_payoff,label='Bull Call Spread')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
     plt.legend()
     plt.show()
 
-def bear_call_payoff_plot(sT, bear_call_spread_payoff, call_payoff, short_call_payoff):
+def bear_call_payoff_plot(sT, bear_call_spread_payoff, K1_short_call_payoff, K2_call_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
-    ax.plot(sT,call_payoff,'--',label='Long Call',color='g')
-    ax.plot(sT,short_call_payoff,'--',label='Short Call ',color='r')
-    ax.plot(sT,b_call_spread_payoff,label='Bear Call Spread')
+    ax.plot(sT,K1_short_call_payoff,'--',label='K1 Short Call ',color='r')
+    ax.plot(sT,K2_call_payoff,'--',label='K2 Long Call',color='g')
+    ax.plot(sT,bear_call_spread_payoff,label='Bear Call Spread')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
     plt.legend()
@@ -398,9 +435,9 @@ def bull_put_payoff_plot(sT, bull_put_spread_payoff, put_payoff, short_put_payof
     ax.plot(sT, bull_put_spread_payoff, color ='b', label = 'Bull Put Spread')
     ax.plot(sT, put_payoff,'--', color ='g', label ='Long Put')
     ax.plot(sT, short_put_payoff,'--', color ='r', label ='Short Put')
-    plt.legend()
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit & Loss')
+    plt.legend()
     plt.show()
 
 def bear_put_payoff_plot(sT, bear_put_spread_payoff, put_payoff, short_put_payoff):
@@ -409,24 +446,23 @@ def bear_put_payoff_plot(sT, bear_put_spread_payoff, put_payoff, short_put_payof
     ax.plot(sT, bear_put_spread_payoff, color ='b', label = 'Bear Put Spread')
     ax.plot(sT, put_payoff,'--', color ='g', label ='Long Put')
     ax.plot(sT, short_put_payoff,'--', color ='r', label ='Short Put')
-    plt.legend()
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit & Loss')
+    plt.legend()
     plt.show()
 
-def protective_collar_payoff_plot(sT, s0, short_call_payoff, put_payoff, protective_collar__payoff):
+def collar_payoff_plot(sT, collar__payoff, short_call_payoff, put_payoff):
     fig, ax = plt.subplots()
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['bottom'].set_position('zero')
     ax.plot(sT, short_call_payoff,'--',label='Short Call',color='r')
     ax.plot(sT, put_payoff,'--',label='Long Put',color='g')
-    ax.plot(sT, protective_collar_payoff+sT-s0,label='Protective Collar')
+    ax.plot(sT, collar_payoff,label='Protective Collar')
     plt.xlabel('Stock Price (sT)', ha='left')
     plt.ylabel('Profit and loss')
     plt.legend()
     plt.show()
-
 
 def long_combo_payoff_plot(sT, long_combo_payoff, short_put_payoff, call_payoff):
     fix , ax = plt.subplots()
@@ -437,26 +473,37 @@ def long_combo_payoff_plot(sT, long_combo_payoff, short_put_payoff, call_payoff)
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
     plt.legend()
-    plt.grid()
     plt.show()
 
-def straddle_payoff_plot(sT, straddle_spread_payoff, put_payoff, call_payoff):
+def straddle_payoff_plot(sT, straddle_payoff, put_payoff, call_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
     ax.plot(sT,call_payoff,'--',label='Long Call',color='r')
     ax.plot(sT,put_payoff,'--',label='Long Put',color='g')
-    ax.plot(sT,straddle_spread_payoff,label='Straddle Sperad')
+    ax.plot(sT,straddle_payoff,label='Straddle Sperad')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
     plt.legend()
     plt.show()
 
-def bear_call_ladder_payoff_plot(sT, bear_call_ladder, ATM_call_payoff, OTM_call_payoff, short_call_payoff):
+def strangle_payoff_plot(sT, strangle_payoff, K1_put_payoff, K2_call_payoff):
+    fig, ax = plt.subplots()
+    ax.spines['bottom'].set_position('zero')
+    ax.plot(sT,K1_put_payoff,'--',label='K1 Long Put',color='r')
+    ax.plot(sT,K2_call_payoff,'--',label='K2 Long Call',color='g')
+    ax.plot(sT,strangle_spread_payoff,label='Strangle Sperad')
+    plt.xlabel('Stock Price (sT)')
+    plt.ylabel('Profit and loss')
+    plt.legend()
+    plt.show()
+
+##### Multi Leg Spread Payoff Plots with Components #####
+def bear_call_ladder_payoff_plot(sT, bear_call_ladder, call_payoff, K2_call_payoff, short_call_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
     ax.plot(sT, bear_call_ladder, color='b', label= 'Bear Call Ladder')
-    ax.plot(sT, ATM_call_payoff,'--', color='g',label='ATM Long Call')
-    ax.plot(sT, OTM_call_payoff,'--', color='g', label='OTM Long Call')
+    ax.plot(sT, call_payoff,'--', color='g',label='ATM Long Call')
+    ax.plot(sT, K2_call_payoff,'--', color='g', label='OTM Long Call')
     ax.plot(sT, short_call_payoff, '--', color='r', label='ITM Short call')
     plt.legend()
     plt.xlabel('Stock Price (sT)')
@@ -467,22 +514,21 @@ def iron_condor_payoff_plot(sT, iron_condor_payoff, call_payoff, short_call_payo
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
     ax.plot(sT,call_payoff,'--',label='Long K4 Call',color='g')
-    ax.plot(sT,short_call_payoff,'--',label='Short K3 Call',color='r')
+    ax.plot(sT,short_call_payoff,'--',label='Short K4 Call',color='r')
     ax.plot(sT,put_payoff,'--',label='Long K1 Strike Put',color='y')
     ax.plot(sT,short_put_payoff,'--',label='Short K2 Strike Put',color='m')
     ax.plot(sT,iron_condor_payoff,label='Iron Condor Spread')
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and loss')
     plt.legend()
-    plt.grid()
     plt.show()
 
-def butterfly_payoff_plot(sT, butterfly_spread_payoff, higher_strike_call_payoff, lower_strike_call_payoff, short_call_payoff):
+def butterfly_payoff_plot(sT, butterfly_spread_payoff, K4_strike_call_payoff, K2_strike_call_payoff, short_call_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
     ax.plot(sT, butterfly_spread_payoff ,color='b', label= 'Butterfly Spread')
-    ax.plot(sT, lower_strike_call_payoff,'--', color='g',label='Lower Strike Call')
-    ax.plot(sT, higher_strike_call_payoff,'--', color='g', label='Higher Strike Call')
+    ax.plot(sT, K2_strike_call_payoff,'--', color='g',label='Lower Strike Call')
+    ax.plot(sT, K4_strike_call_payoff,'--', color='g', label='Higher Strike Call')
     ax.plot(sT, short_call_payoff, '--', color='r', label='Short Call')
     plt.legend()
     plt.xlabel('Stock Price (sT)')
@@ -502,7 +548,7 @@ def iron_butterfly_payoff_plot(sT, iron_butterfly_payoff, call_payoff, short_cal
     plt.legend()
     plt.show()
 
-def jade_lizard_payoff_plot(sT,call_payoff,short_call_payoff,short_put_payoff,jade_lizard_payoff):
+def jade_lizard_payoff_plot(sT,jade_lizard_payoff,call_payoff,short_call_payoff,short_put_payoff):
     fig, ax = plt.subplots()
     ax.spines['bottom'].set_position('zero')
     ax.plot(sT,call_payoff,'--',label='Long Strike Call',color='g')
@@ -512,19 +558,8 @@ def jade_lizard_payoff_plot(sT,call_payoff,short_call_payoff,short_put_payoff,ja
     plt.xlabel('Stock Price (sT)')
     plt.ylabel('Profit and Loss')
     plt.legend()
-    plt.grid()
     plt.show()
 
-# protective put
-# covered call
-# synthetic call
-
-##### Max Profit and Loss Figures #####
-def profit_loss(payoff):
-    Profit = max(payoff).round(4)
-    Loss = min(payoff).round(4)
-    print('Max Profit: ' + str(Profit) + ' | Max Loss: '+ str(Loss))
-    return Profit, Loss
 ##### Implied volatility Calculation #####
 def impl_vol(underlying_price, strike, interest_rate, days_to_expiration, call_price):
     iv_calculation = mibian.BS([underlying_price, strike, interest_rate, days_to_expiration],callPrice= call_price)
@@ -556,8 +591,8 @@ def calendar_spread(sT, interest_rate, strike, front_future, back_future, dte_fr
 
 def calendar_spread_plot(sT, calendar_spread):
     plt.figure(figsize=(10,5))
-    plt.ylabel("payoff")
-    plt.xlabel("Underlying Price")
+    plt.ylabel("Payoff")
+    plt.xlabel("Underlying Price (sT)")
     plt.plot(sT,calendar_spread.payoff)
     plt.show()
 
@@ -587,7 +622,7 @@ def diagonal_spread(sT, interest_rate, front_strike, back_strike, front_future, 
 
 def diagnoal_spread_plot(sT, diagonal_spread):
     plt.figure(figsize=(10,5))
-    plt.ylabel("payoff")
-    plt.xlabel("Underlying Price")
+    plt.ylabel("Payoff")
+    plt.xlabel("Underlying Price (sT)")
     plt.plot(sT,diagonal_spread.payoff)
     plt.show()
