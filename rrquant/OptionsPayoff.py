@@ -7,6 +7,7 @@ import mibian
 seaborn.set(style="darkgrid")
 
 # List of Option Strategies & Descriptions
+
 def strategy_description():
     strats_dict = {"stock_payoff": ' ',
     "short_stock_payoff": ' ',
